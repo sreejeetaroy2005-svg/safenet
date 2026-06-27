@@ -1,0 +1,15 @@
+{
+  "appId": "com.resqnet.app",
+  "appName": "RESQNET",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#DC2626",
+      "showSpinner": false
+    }
+  }
+}

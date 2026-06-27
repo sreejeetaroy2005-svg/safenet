@@ -1,0 +1,69 @@
+# ── Dependencies ────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ── Build output ─────────────────────────────────────────────────
+dist/
+dist-ssr/
+build/
+
+# ── Environment & secrets ────────────────────────────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.local
+
+# Firebase — never commit real credentials
+# src/services/firebase.js contains your config — keep it out of public repos
+# Uncomment the line below if you want to exclude it entirely:
+# src/services/firebase.js
+
+# ── Android / Capacitor ──────────────────────────────────────────
+android/.gradle/
+android/app/build/
+android/build/
+android/.idea/
+android/local.properties
+android/app/google-services.json
+*.keystore
+*.jks
+release/
+
+# ── iOS / Capacitor ──────────────────────────────────────────────
+ios/App/Pods/
+ios/.xcode.env.local
+*.xcworkspace/xcuserdata/
+
+# ── Logs ─────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── Editor & OS ──────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── Testing ──────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Misc ─────────────────────────────────────────────────────────
+*.tgz
+.cache/
+.parcel-cache/
+.turbo/
