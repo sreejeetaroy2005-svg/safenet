@@ -88,7 +88,7 @@ export function AppProvider({ children }) {
       unsubRefs.current = unsubs
     })
     return () => unsubRefs.current.forEach(fn => fn?.())
-  }, [user?.uid, FIREBASE_ENABLED])
+  }, [user?.uid || user?.id, FIREBASE_ENABLED])
 
   // ── Firebase auth state listener ──────────────────────────────
   useEffect(() => {
@@ -110,9 +110,10 @@ export function AppProvider({ children }) {
 
   // ── Auth actions ───────────────────────────────────────────────
   const login = useCallback(async (credOrUser) => {
-    // If it's already a user object (guest, admin, localStorage user), set directly
-    if (!FIREBASE_ENABLED || credOrUser.role || credOrUser.id) {
-      // Show tour for guest users
+    // Pre-built user objects (guest, admin) bypass Firebase — they have a local `id` field
+    // Firebase-registered users only have `uid`, so we route them through Firebase auth
+    const isPrebuilt = !FIREBASE_ENABLED || credOrUser.id !== undefined
+    if (isPrebuilt) {
       if (credOrUser.id === 'guest') setShowTour(true)
       setUser(credOrUser)
       return
@@ -164,7 +165,9 @@ export function AppProvider({ children }) {
     // Write to Firestore when enabled
     if (FIREBASE_ENABLED) {
       import('../services/sosFirestore').then(({ sendSosAlert }) => {
-        sendSosAlert(newAlert).catch(e => console.warn('[SAFENET] Firestore SOS write failed:', e.message))
+        // Strip local id — Firestore generates its own document ID via addDoc
+        const { id: _localId, ...firestorePayload } = newAlert
+        sendSosAlert(firestorePayload).catch(e => console.warn('[SAFENET] Firestore SOS write failed:', e.message))
       })
     }
     return newAlert
