@@ -108,7 +108,48 @@
 .thin-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
 .dark .thin-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
 
-/* Low Power Mode */
+/* Ticker scroll animation */
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-ticker {
+  display: inline-flex;
+  animation: ticker 28s linear infinite;
+  white-space: nowrap;
+}
+.animate-ticker:hover { animation-play-state: paused; }
+
+/* Subtle dark grid texture */
+.dark .bg-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Blinking cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.animate-blink { animation: blink 1s step-end infinite; }
+
+/* Subtle red scan pulse on SOS card */
+@keyframes scan {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  20%  { opacity: 0.06; }
+  80%  { opacity: 0.06; }
+  100% { transform: translateY(200%); opacity: 0; }
+}
+.animate-scan::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
+  animation: scan 3s ease-in-out infinite;
+  pointer-events: none;
+}
 .low-power *,
 .low-power *::before,
 .low-power *::after {

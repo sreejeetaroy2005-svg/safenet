@@ -14,7 +14,7 @@
 const USGS_URL =
   'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson'
 
-const OWM_KEY  = import.meta.env.VITE_WEATHER_API_KEY || ''
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 export function earthquakeSeverity(mag) {
   if (mag >= 7.0) return 'CRITICAL'
@@ -84,11 +84,10 @@ export async function fetchEarthquakes() {
 
 /* ── OpenWeatherMap weather warnings ────────────────────────── */
 export async function fetchWeatherWarnings(lat = 20.5937, lng = 78.9629) {
-  if (!OWM_KEY) return MOCK_WEATHER_WARNINGS
+  if (!API_URL) return MOCK_WEATHER_WARNINGS
   try {
-    const data = await fetchWithTimeout(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${OWM_KEY}&units=metric`
-    )
+    const res  = await fetchWithTimeout(`${API_URL}/api/weather?lat=${lat}&lon=${lng}`)
+    const data = res
     const warnings = []
     const w = data.weather?.[0]
     if (!w) return MOCK_WEATHER_WARNINGS

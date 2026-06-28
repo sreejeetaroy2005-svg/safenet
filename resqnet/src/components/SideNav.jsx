@@ -127,13 +127,14 @@ export default function SideNav({ collapsed, setCollapsed }) {
     <aside className={`hidden md:flex flex-col h-full bg-[#0c0c18] border-r border-white/8 transition-all duration-300 shrink-0 ${collapsed ? 'w-16' : 'w-56'}`}>
       {/* Logo */}
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-white/8 ${collapsed ? 'justify-center px-2' : ''}`}>
-        <div className="w-9 h-9 bg-gradient-to-br from-red-500 to-red-700 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30 shrink-0">
+        <div className="relative w-9 h-9 bg-gradient-to-br from-red-500 to-red-700 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30 shrink-0">
           <Shield size={18} className="text-white" />
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[#0c0c18]" />
         </div>
         {!collapsed && (
           <div className="min-w-0">
             <p className="text-sm font-black text-white tracking-tight leading-none">SafeNet</p>
-            <p className="text-[9px] text-gray-500 font-medium tracking-widest">RESPONSE NETWORK</p>
+            <p className="text-[9px] text-gray-500 font-medium tracking-widest uppercase">Response Network</p>
           </div>
         )}
       </div>

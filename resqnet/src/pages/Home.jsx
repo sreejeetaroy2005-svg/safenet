@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/useApp'
 import {
   AlertCircle, Map, FileText, Phone, MessageCircle, Radio,
   Moon, Sun, Shield, Bell, ChevronRight, Check, Brain, Users,
-  TriangleAlert, ClipboardList, Package
+  TriangleAlert, ClipboardList, Package, Activity
 } from 'lucide-react'
 import { useTranslation } from '../services/i18n'
 import WeatherBanner from '../components/WeatherBanner'
@@ -30,6 +30,65 @@ const quickActions = [
   { label: 'Damage AI',        icon: Brain,          path: '/ai-damage',      from: 'from-pink-500',   to: 'to-rose-500',    glow: 'shadow-pink-500/25',   desc: 'Analyze damage photo' },
 ]
 
+const TICKER_EVENTS = [
+  { icon: '🟢', text: 'ALL RESPONSE CHANNELS OPERATIONAL' },
+  { icon: '📡', text: 'FIREBASE SYNC ACTIVE · REAL-TIME ALERTS ENABLED' },
+  { icon: '🛰️', text: 'GPS LOCATION SERVICES READY' },
+  { icon: '🤖', text: 'AI DAMAGE ASSESSMENT MODULE ONLINE' },
+  { icon: '⚡', text: 'OFFLINE MODE AVAILABLE · DATA QUEUES READY' },
+  { icon: '🗺️', text: 'DISASTER MAP LAYERS LOADED' },
+  { icon: '🔔', text: 'PUSH NOTIFICATION SERVICE ACTIVE' },
+  { icon: '🆘', text: 'SOS RELAY NETWORK STANDING BY' },
+]
+
+function LiveClock() {
+  const [time, setTime] = useState(() => new Date())
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  const pad = n => String(n).padStart(2, '0')
+  return (
+    <span className="font-mono text-xs tabular-nums text-gray-400 dark:text-gray-500 tracking-widest select-none">
+      {pad(time.getHours())}<span className="animate-blink">:</span>{pad(time.getMinutes())}<span className="animate-blink">:</span>{pad(time.getSeconds())}
+    </span>
+  )
+}
+
+function LiveTicker({ sosActive, broadcasts }) {
+  const events = sosActive
+    ? [{ icon: '🆘', text: 'SOS ALERT ACTIVE — HELP HAS BEEN NOTIFIED' }, ...TICKER_EVENTS]
+    : TICKER_EVENTS
+  const items = [...events, ...events]
+  return (
+    <div
+      className={`w-full overflow-hidden border-b text-[10px] font-mono font-bold tracking-widest flex items-center select-none
+        ${sosActive
+          ? 'bg-red-950/60 border-red-500/30 text-red-400'
+          : 'bg-[#0c0c18] dark:bg-[#08080e] border-white/5 text-gray-500'
+        }`}
+      style={{ height: '26px' }}
+    >
+      <div className={`shrink-0 px-3 h-full flex items-center gap-1.5 border-r text-[9px] font-black tracking-widest
+        ${sosActive ? 'border-red-500/30 text-red-500 bg-red-500/10' : 'border-white/8 text-green-500 bg-green-500/5'}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${sosActive ? 'bg-red-500 animate-pulse' : 'bg-green-500 animate-pulse'}`} />
+        {sosActive ? 'ALERT' : 'LIVE'}
+      </div>
+      <div className="flex-1 overflow-hidden h-full flex items-center">
+        <div className="animate-ticker">
+          {items.map((ev, i) => (
+            <span key={i} className="inline-flex items-center gap-1.5 px-6">
+              <span>{ev.icon}</span>
+              <span>{ev.text}</span>
+              <span className="text-gray-700 px-2">✦</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
   const navigate = useNavigate()
   const { user, darkMode, setDarkMode, broadcasts, sosStage, pendingSync, lang } = useApp()
@@ -53,14 +112,28 @@ export default function Home() {
   const sosActive = sosStage === 'sent'
 
   return (
-    <div className="pb-24 md:pb-8 pt-6">
+    <div className="pb-24 md:pb-8">
+      {/* ── Live Ticker ── */}
+      <div className="-mx-4 md:-mx-6 lg:-mx-8 mb-5">
+        <LiveTicker sosActive={sosActive} broadcasts={broadcasts} />
+      </div>
+
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            Welcome back, <span className="font-semibold text-gray-700 dark:text-gray-300">{user?.name || 'Guest'}</span>
-          </p>
+          <div className="flex items-center gap-2 mb-0.5">
+            <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
+            <span className="hidden md:flex items-center gap-1 text-[9px] font-black text-green-500 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full tracking-widest">
+              <Activity size={8} />SYSTEM ONLINE
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Welcome back, <span className="font-semibold text-gray-700 dark:text-gray-300">{user?.name || 'Guest'}</span>
+            </p>
+            <span className="text-gray-600 dark:text-gray-700">·</span>
+            <LiveClock />
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {sosActive && (
@@ -108,31 +181,50 @@ export default function Home() {
                   {sosActive ? '🟢 Alert Active — Help Notified' : 'Tap to send emergency alert'}
                 </p>
               </div>
-              <ChevronRight size={22} className="text-white/60 relative shrink-0" />
+              <div className="relative flex flex-col items-center gap-1 shrink-0">
+                <div className="w-9 h-9 rounded-full border-2 border-white/20 flex items-center justify-center">
+                  <span className="absolute w-9 h-9 rounded-full bg-white/10 animate-ping" style={{ animationDuration: '2s' }} />
+                  <ChevronRight size={15} className="text-white/70 relative" />
+                </div>
+                <span className="text-[8px] text-white/40 font-mono tracking-widest">READY</span>
+              </div>
             </div>
           </button>
         </div>
 
         {/* Status / readiness card */}
-        <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-[#141420] dark:to-[#0f0f1a] border border-white/10">
+        <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-slate-800 to-slate-900 dark:from-[#141420] dark:to-[#0f0f1a] border border-white/10 bg-grid">
           <div className="absolute top-0 right-0 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">System Status</p>
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">System Status</p>
+            <span className="text-[9px] font-mono text-gray-600 tracking-widest">BUILD 01.06</span>
+          </div>
+          <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <span className="text-sm text-green-400 font-semibold">All systems online</span>
           </div>
-          <div className="mt-4 space-y-2">
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <div className="bg-white/5 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-black text-white tabular-nums">{completedCount}<span className="text-xs text-gray-500">/{CHECKLIST_ITEMS.length}</span></p>
+              <p className="text-[10px] text-gray-500 mt-0.5 tracking-wide">Prepared</p>
+            </div>
+            <div className="bg-white/5 rounded-xl p-2.5 text-center">
+              <p className="text-lg font-black text-blue-400 tabular-nums">{broadcasts.length}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5 tracking-wide">Broadcasts</p>
+            </div>
+          </div>
+          <div className="mt-3 space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-500">Readiness</span>
-              <span className="font-bold text-white">{progressPercent}%</span>
+              <span className="font-black text-white tabular-nums">{progressPercent}%</span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-700 rounded-full" style={{ width: `${progressPercent}%` }} />
             </div>
           </div>
           {latestBroadcast && (
-            <div className="mt-4 pt-3 border-t border-white/8">
-              <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Latest Alert</p>
+            <div className="mt-3 pt-3 border-t border-white/8">
+              <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Latest Alert</p>
               <p className="text-xs text-gray-300 font-medium mt-1 line-clamp-2">{latestBroadcast.title}</p>
             </div>
           )}

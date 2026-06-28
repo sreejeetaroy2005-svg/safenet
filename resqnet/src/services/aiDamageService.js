@@ -1,18 +1,16 @@
 /**
  * aiDamageService.js
- * Real AI damage assessment using OpenRouter vision models.
- * Sends the uploaded image to a multimodal LLM and parses the response.
- * Falls back to mock analysis if AI is unavailable.
+ * AI damage assessment — calls the SafeNet backend proxy on Render.
+ * Falls back to mock analysis if backend is unavailable.
  */
 
-const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_API_KEY
+const API_URL = import.meta.env.VITE_API_URL  // e.g. https://safenet-backend.onrender.com
 
-// Vision-capable free models on OpenRouter
 const VISION_MODELS = [
   'google/gemma-4-26b-a4b-it:free',
   'google/gemma-4-31b-it:free',
   'meta-llama/llama-3.2-11b-vision-instruct:free',
-  'openrouter/auto',   // auto-selects best available free vision model
+  'openrouter/auto',
 ]
 
 const ANALYSIS_PROMPT = `You are an AI disaster damage assessment system for SafeNet emergency app.
@@ -34,58 +32,42 @@ Rules:
 - riskFactors = 2-4 specific hazards visible in the image
 - If image is not damage-related, return score:1 with confidence:70`
 
-/**
- * Convert a File to base64 string
- */
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = () => resolve(reader.result.split(',')[1]) // strip "data:image/...;base64,"
+    reader.onload = () => resolve(reader.result.split(',')[1])
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
 }
 
-/**
- * Analyze image using OpenRouter vision model
- * @param {File} imageFile
- * @returns {Promise<object>} analysis result
- */
 export async function analyzeImage(imageFile) {
-  // Try real AI first
-  if (OPENROUTER_KEY && OPENROUTER_KEY !== 'YOUR_OPENROUTER_KEY') {
+  if (API_URL) {
     try {
-      const result = await analyzeWithAI(imageFile)
+      const result = await analyzeWithBackend(imageFile)
       if (result) return result
     } catch (err) {
-      console.warn('[SAFENET] AI vision failed, using mock analysis:', err.message)
+      console.warn('[SAFENET] Backend damage analysis failed, using mock:', err.message)
     }
   }
-
-  // Fallback to mock analysis
   return mockAnalysis(imageFile)
 }
 
-async function analyzeWithAI(imageFile) {
-  const base64 = await fileToBase64(imageFile)
+async function analyzeWithBackend(imageFile) {
+  const base64   = await fileToBase64(imageFile)
   const mimeType = imageFile.type || 'image/jpeg'
 
   for (const model of VISION_MODELS) {
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${OPENROUTER_KEY}`,
-          'HTTP-Referer':  'http://localhost:5173',
-          'X-Title':       'SafeNet Damage Assessment',
-        },
+      const res = await fetch(`${API_URL}/api/damage`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model,
-          max_tokens: 300,
-          temperature: 0.1, // low temp for consistent structured output
+          max_tokens:  300,
+          temperature: 0.1,
           messages: [{
-            role: 'user',
+            role:    'user',
             content: [
               { type: 'text',      text: ANALYSIS_PROMPT },
               { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } },
@@ -95,58 +77,53 @@ async function analyzeWithAI(imageFile) {
       })
 
       if (!res.ok) {
-        console.warn(`[SAFENET] Vision model ${model} failed: ${res.status}`)
+        const err = await res.json().catch(() => ({}))
+        console.warn(`[SAFENET] Backend damage model ${model} failed: ${res.status}`, err.error)
         continue
       }
 
       const data = await res.json()
-      const raw = data.choices?.[0]?.message?.content?.trim()
+      const raw  = data.choices?.[0]?.message?.content?.trim()
       if (!raw) continue
 
-      console.log('[SAFENET] AI damage analysis raw response:', raw)
+      console.log('[SAFENET] Backend damage response:', raw)
 
-      // Robust JSON extraction — handles markdown blocks, extra text, etc.
       let parsed = null
-      // Try 1: direct parse
       try { parsed = JSON.parse(raw) } catch {}
-      // Try 2: extract from ```json ... ``` block
       if (!parsed) {
         const mdMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/)
         if (mdMatch) try { parsed = JSON.parse(mdMatch[1].trim()) } catch {}
       }
-      // Try 3: extract first {...} block
       if (!parsed) {
         const objMatch = raw.match(/\{[\s\S]*\}/)
         if (objMatch) try { parsed = JSON.parse(objMatch[0]) } catch {}
       }
-      // Try 4: parse key fields with regex if JSON is malformed
       if (!parsed) {
-        const levelMatch  = raw.match(/"damageLevel"\s*:\s*"([^"]+)"/)
-        const scoreMatch  = raw.match(/"score"\s*:\s*(\d)/)
-        const confMatch   = raw.match(/"confidence"\s*:\s*(\d+)/)
-        const priMatch    = raw.match(/"rescuePriority"\s*:\s*"([^"]+)"/)
-        const urgMatch    = raw.match(/"urgency"\s*:\s*"([^"]+)"/)
+        const levelMatch = raw.match(/"damageLevel"\s*:\s*"([^"]+)"/)
+        const scoreMatch = raw.match(/"score"\s*:\s*(\d)/)
+        const confMatch  = raw.match(/"confidence"\s*:\s*(\d+)/)
+        const priMatch   = raw.match(/"rescuePriority"\s*:\s*"([^"]+)"/)
+        const urgMatch   = raw.match(/"urgency"\s*:\s*"([^"]+)"/)
         if (levelMatch && scoreMatch) {
           parsed = {
-            damageLevel:   levelMatch[1],
-            score:         parseInt(scoreMatch[1]),
-            confidence:    confMatch ? parseInt(confMatch[1]) : 80,
-            rescuePriority: priMatch ? priMatch[1] : 'MEDIUM',
-            urgency:       urgMatch ? urgMatch[1] : 'Assess situation and respond',
-            riskFactors:   ['Damage detected in image', 'Further assessment needed'],
+            damageLevel:    levelMatch[1],
+            score:          parseInt(scoreMatch[1]),
+            confidence:     confMatch  ? parseInt(confMatch[1])  : 80,
+            rescuePriority: priMatch   ? priMatch[1]             : 'MEDIUM',
+            urgency:        urgMatch   ? urgMatch[1]             : 'Assess situation and respond',
+            riskFactors:    ['Damage detected in image', 'Further assessment needed'],
           }
         }
       }
 
       if (!parsed) {
-        console.warn('[SAFENET] Could not parse JSON from model response:', raw.slice(0, 200))
+        console.warn('[SAFENET] Could not parse model response:', raw.slice(0, 200))
         continue
       }
 
       return enrichResult(parsed, imageFile.name)
-
     } catch (err) {
-      console.warn(`[SAFENET] Vision model ${model} error:`, err.message)
+      console.warn(`[SAFENET] Backend damage model ${model} error:`, err.message)
       continue
     }
   }
@@ -154,7 +131,6 @@ async function analyzeWithAI(imageFile) {
   throw new Error('All vision models failed')
 }
 
-/** Add color/style metadata based on score */
 function enrichResult(parsed, fileName) {
   const LEVEL_META = {
     4: { color: '#DC2626', bg: 'bg-red-500/15',    border: 'border-red-500/40' },
@@ -163,24 +139,17 @@ function enrichResult(parsed, fileName) {
     1: { color: '#16A34A', bg: 'bg-green-500/15',  border: 'border-green-500/40' },
   }
   const meta = LEVEL_META[parsed.score] || LEVEL_META[1]
-  return {
-    ...parsed,
-    ...meta,
-    analyzedAt: Date.now(),
-    fileName:   fileName || 'image.jpg',
-    aiPowered:  true,
-  }
+  return { ...parsed, ...meta, analyzedAt: Date.now(), fileName: fileName || 'image.jpg', aiPowered: true }
 }
 
-/** Mock fallback when AI is unavailable */
 function mockAnalysis(imageFile) {
   return new Promise(resolve => {
     setTimeout(() => {
       const levels = [
-        { damageLevel: 'Critical',        score: 4, urgency: 'Immediate rescue required',    confidence: 91, rescuePriority: 'HIGH',   riskFactors: ['Structural collapse visible', 'Fire damage indicators', 'Foundation compromise'] },
-        { damageLevel: 'Severe Damage',   score: 3, urgency: 'Urgent response within 1 hour',confidence: 85, rescuePriority: 'HIGH',   riskFactors: ['Roof damage detected', 'Wall cracks identified', 'Water intrusion visible'] },
-        { damageLevel: 'Moderate Damage', score: 2, urgency: 'Response within 4 hours',      confidence: 78, rescuePriority: 'MEDIUM', riskFactors: ['Debris accumulation', 'Partial structural damage', 'Access route blocked'] },
-        { damageLevel: 'Minor Damage',    score: 1, urgency: 'Monitor and assess further',    confidence: 73, rescuePriority: 'LOW',   riskFactors: ['Surface cracks visible', 'Minor debris'] },
+        { damageLevel: 'Critical',        score: 4, urgency: 'Immediate rescue required',     confidence: 91, rescuePriority: 'HIGH',   riskFactors: ['Structural collapse visible', 'Fire damage indicators', 'Foundation compromise'] },
+        { damageLevel: 'Severe Damage',   score: 3, urgency: 'Urgent response within 1 hour', confidence: 85, rescuePriority: 'HIGH',   riskFactors: ['Roof damage detected', 'Wall cracks identified', 'Water intrusion visible'] },
+        { damageLevel: 'Moderate Damage', score: 2, urgency: 'Response within 4 hours',       confidence: 78, rescuePriority: 'MEDIUM', riskFactors: ['Debris accumulation', 'Partial structural damage', 'Access route blocked'] },
+        { damageLevel: 'Minor Damage',    score: 1, urgency: 'Monitor and assess further',     confidence: 73, rescuePriority: 'LOW',   riskFactors: ['Surface cracks visible', 'Minor debris'] },
       ]
       const weights = [0.15, 0.30, 0.35, 0.20]
       let rand = Math.random(), cum = 0, selected = levels[2]

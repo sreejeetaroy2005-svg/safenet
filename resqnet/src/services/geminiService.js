@@ -1,18 +1,15 @@
 /**
  * geminiService.js
- * AI chat service with two-tier fallback:
- *   1. Google Gemini (gemini-2.0-flash-lite) via official SDK
- *   2. OpenRouter (free, uses google/gemini-2.0-flash-lite or mistral as backup)
- *   3. Rule-based offline fallback (handled in Chat.jsx)
+ * AI chat — calls the SafeNet backend proxy on Render.
+ * Falls back to rule-based offline responses (handled in Chat.jsx).
  *
- * Setup:
- *   - Gemini key: https://aistudio.google.com/app/apikey  → VITE_GEMINI_API_KEY
- *   - OpenRouter key: https://openrouter.ai/keys          → VITE_OPENROUTER_API_KEY
+ * The backend (server/index.js) holds the real API keys.
+ * VITE_API_URL must be set to your Render backend URL in .env.local
  */
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const GEMINI_KEY      = import.meta.env.VITE_GEMINI_API_KEY
-const OPENROUTER_KEY  = import.meta.env.VITE_OPENROUTER_API_KEY
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY
+const API_URL    = import.meta.env.VITE_API_URL  // e.g. https://safenet-backend.onrender.com
 
 const SYSTEM_PROMPT = `You are SafeNet Assistant for disaster emergencies and preparedness.
 Be concise (under 100 words). Use bullet points.
@@ -20,8 +17,8 @@ Emergency numbers: 112 (all), 108 (ambulance), 100 (police), 101 (fire).
 Help with: pre-disaster preparedness, building emergency kits, family plans, understanding risk zones, first aid, evacuation, flood/fire/earthquake safety, shelter finding.
 Respond in user's language (English/Hindi/Tamil).`
 
-// ── Gemini SDK ───────────────────────────────────────────────────
-let genAI = null
+// ── Gemini SDK (client-side, key stays in .env.local) ────────────
+let genAI    = null
 let gemModel = null
 
 function getGeminiModel() {
@@ -47,17 +44,17 @@ async function askGemini(history, userMessage) {
   return result.response.text().trim()
 }
 
-// ── OpenRouter fallback ──────────────────────────────────────────
+// ── OpenRouter via Render backend ────────────────────────────────
 async function askOpenRouter(history, userMessage) {
-  // Keep only last 4 turns to save tokens
+  if (!API_URL) throw new Error('VITE_API_URL not set')
+
   const recentHistory = history.slice(-4)
   const messages = [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system',    content: SYSTEM_PROMPT },
     ...recentHistory.map(h => ({ role: h.role === 'model' ? 'assistant' : 'user', content: h.text })),
     { role: 'user', content: userMessage },
   ]
 
-  // All free models from your OpenRouter account — tries each until one responds
   const models = [
     'google/gemma-4-26b-a4b-it:free',
     'google/gemma-4-31b-it:free',
@@ -72,32 +69,26 @@ async function askOpenRouter(history, userMessage) {
 
   for (const model of models) {
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${OPENROUTER_KEY}`,
-          'HTTP-Referer':  'http://localhost:5173',
-          'X-Title':       'SafeNet Emergency Assistant',
-        },
-        body: JSON.stringify({ model, messages, max_tokens: 512, temperature: 0.4 }),
+      const res = await fetch(`${API_URL}/api/chat`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ model, messages, max_tokens: 512, temperature: 0.4 }),
       })
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        const errMsg = err?.error?.message || err?.message || `HTTP ${res.status}`
-        console.warn(`[SAFENET] OpenRouter model ${model} failed:`, res.status, errMsg)
-        continue  // try next model regardless of error type
+        console.warn(`[SAFENET] Backend chat model ${model} failed:`, res.status, err.error)
+        continue
       }
 
       const data = await res.json()
       const text = data.choices?.[0]?.message?.content?.trim()
       if (text) {
-        console.log('[SAFENET] OpenRouter responded via:', model)
+        console.log('[SAFENET] Backend responded via:', model)
         return text
       }
     } catch (e) {
-      console.warn(`[SAFENET] OpenRouter model ${model} error:`, e.message)
+      console.warn(`[SAFENET] Backend chat error (${model}):`, e.message)
     }
   }
 
@@ -105,39 +96,34 @@ async function askOpenRouter(history, userMessage) {
 }
 
 // ── Public API ───────────────────────────────────────────────────
-/**
- * Try Gemini first, fall back to OpenRouter, then throw for rule-based fallback.
- */
 export async function sendToGemini(history, userMessage) {
-  // Try Gemini SDK first
+  // 1. Try Gemini SDK (client-side key — optional)
   if (GEMINI_KEY && GEMINI_KEY !== 'YOUR_GEMINI_API_KEY') {
     try {
       const text = await askGemini(history, userMessage)
       if (text) return text
     } catch (err) {
       const is429 = err?.message?.includes('429') || err?.message?.toLowerCase().includes('quota')
-      if (!is429) throw err  // non-quota error — propagate
-      // quota hit — fall through to OpenRouter
-      console.warn('[SAFENET] Gemini quota hit, trying OpenRouter…')
+      if (!is429) throw err
+      console.warn('[SAFENET] Gemini quota hit, trying backend OpenRouter…')
     }
   }
 
-  // Try OpenRouter
-  if (OPENROUTER_KEY && OPENROUTER_KEY !== 'YOUR_OPENROUTER_KEY') {
+  // 2. Try OpenRouter via backend proxy
+  if (API_URL) {
     try {
       const text = await askOpenRouter(history, userMessage)
       if (text) return text
     } catch (err) {
-      console.warn('[SAFENET] OpenRouter failed:', err.message)
+      console.warn('[SAFENET] Backend OpenRouter failed:', err.message)
     }
   } else {
-    console.warn('[SAFENET] OpenRouter key not set — add VITE_OPENROUTER_API_KEY to .env.local')
+    console.warn('[SAFENET] VITE_API_URL not set — backend proxy unavailable')
   }
 
-  // Both unavailable
   throw new Error('ALL_PROVIDERS_FAILED')
 }
 
 export const geminiAvailable = () =>
-  (!!GEMINI_KEY    && GEMINI_KEY    !== 'YOUR_GEMINI_API_KEY') ||
-  (!!OPENROUTER_KEY && OPENROUTER_KEY !== 'YOUR_OPENROUTER_KEY')
+  (!!GEMINI_KEY && GEMINI_KEY !== 'YOUR_GEMINI_API_KEY') ||
+  !!API_URL
