@@ -184,7 +184,24 @@ export default function Auth() {
             </button>
           </>
         )}
-        {isAdmin && <p className="text-center text-xs text-gray-600 mt-5">admin@safenet.com · admin123</p>}
+        {isAdmin && (
+          <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Demo Credentials</p>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs text-gray-300 font-mono">admin@safenet.com</p>
+                <p className="text-xs text-gray-300 font-mono">admin123</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm({ name: '', email: 'admin@safenet.com', password: 'admin123' })}
+                className="shrink-0 text-[11px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-xl hover:bg-red-500/20 transition-colors"
+              >
+                Autofill ↗
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
