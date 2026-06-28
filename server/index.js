@@ -20,24 +20,41 @@ const PORT = process.env.PORT || 3001
 
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY
 const WEATHER_KEY    = process.env.WEATHER_API_KEY
-const FRONTEND_URL   = process.env.FRONTEND_URL || '*'
+// Strip trailing slash so CORS origin matching works correctly
+const FRONTEND_URL   = (process.env.FRONTEND_URL || '*').replace(/\/$/, '')
 
 // ── Middleware ────────────────────────────────────────────────────
-app.use(express.json({ limit: '20mb' })) // large for base64 images
+app.use(express.json({ limit: '25mb' })) // large for base64 images
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: FRONTEND_URL === '*' ? '*' : [FRONTEND_URL, 'http://localhost:5173'],
   methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
 }))
 
 // ── Health check ─────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
   res.json({
-    status: 'ok',
+    status:     'ok',
     openrouter: !!OPENROUTER_KEY,
     weather:    !!WEATHER_KEY,
+    cors:       FRONTEND_URL,
     timestamp:  new Date().toISOString(),
   })
 })
+
+// ── Fetch with timeout helper ─────────────────────────────────────
+async function fetchWithTimeout(url, options, ms = 30000) {
+  const ctrl = new AbortController()
+  const tid  = setTimeout(() => ctrl.abort(), ms)
+  try {
+    const res = await fetch(url, { ...options, signal: ctrl.signal })
+    clearTimeout(tid)
+    return res
+  } catch (err) {
+    clearTimeout(tid)
+    throw err
+  }
+}
 
 // ── POST /api/chat ────────────────────────────────────────────────
 // Body: { model, messages, max_tokens, temperature }
@@ -52,7 +69,7 @@ app.post('/api/chat', async (req, res) => {
   }
 
   try {
-    const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const upstream = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method:  'POST',
       headers: {
         'Content-Type':  'application/json',
@@ -61,7 +78,7 @@ app.post('/api/chat', async (req, res) => {
         'X-Title':       'SafeNet Emergency Assistant',
       },
       body: JSON.stringify({ model, messages, max_tokens, temperature }),
-    })
+    }, 25000)
 
     const data = await upstream.json()
 
@@ -73,7 +90,7 @@ app.post('/api/chat', async (req, res) => {
     res.json(data)
   } catch (err) {
     console.error('[chat] proxy error:', err.message)
-    res.status(502).json({ error: 'Upstream request failed' })
+    res.status(502).json({ error: err.name === 'AbortError' ? 'Request timed out' : 'Upstream request failed' })
   }
 })
 
@@ -91,7 +108,7 @@ app.post('/api/damage', async (req, res) => {
   }
 
   try {
-    const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const upstream = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method:  'POST',
       headers: {
         'Content-Type':  'application/json',
@@ -100,7 +117,7 @@ app.post('/api/damage', async (req, res) => {
         'X-Title':       'SafeNet Damage Assessment',
       },
       body: JSON.stringify({ model, messages, max_tokens, temperature }),
-    })
+    }, 60000) // 60s — vision models are slow with large images
 
     const data = await upstream.json()
 
@@ -112,7 +129,7 @@ app.post('/api/damage', async (req, res) => {
     res.json(data)
   } catch (err) {
     console.error('[damage] proxy error:', err.message)
-    res.status(502).json({ error: 'Upstream request failed' })
+    res.status(502).json({ error: err.name === 'AbortError' ? 'Vision model timed out' : 'Upstream request failed' })
   }
 })
 
