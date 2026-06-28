@@ -3,7 +3,7 @@
  * Handles GPS acquisition with fallback, caching, and permission state.
  */
 
-const CACHE_KEY = 'resqnet_last_location'
+const CACHE_KEY = 'safenet_last_location'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 /** Save location to localStorage for offline fallback */

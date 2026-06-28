@@ -44,7 +44,7 @@ export default function AdminDashboard() {
 
   useEffect(() => { const t = setInterval(() => setTick(n => n + 1), 30000); return () => clearInterval(t) }, [])
 
-  const allUsers    = JSON.parse(localStorage.getItem('resqnet_users') || '[]')
+  const allUsers    = JSON.parse(localStorage.getItem('safenet_users') || '[]')
   const activeAlerts = sosAlerts.filter(s => s.status === 'active' || s.status === 'pending')
   const filteredReports = reportFilter === 'all' ? reports : reports.filter(r => r.type === reportFilter)
 
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
               <Shield size={18} className="text-white" />
             </div>
             <div>
-              <h1 className="font-black text-white text-base leading-none">RESQNET Admin</h1>
+              <h1 className="font-black text-white text-base leading-none">SafeNet Admin</h1>
               <p className="text-xs text-red-200">{user?.name} · Control Center</p>
             </div>
           </div>
@@ -301,7 +301,7 @@ export default function AdminDashboard() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm text-white">Admin</p>
-                <p className="text-xs text-gray-500">admin@resqnet.com</p>
+                <p className="text-xs text-gray-500">admin@safenet.com</p>
               </div>
               <span className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-bold">Admin</span>
             </div>

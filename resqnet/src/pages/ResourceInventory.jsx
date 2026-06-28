@@ -13,7 +13,7 @@ import { useApp } from '../context/useApp'
 import { buildRiskZones, getActiveZones } from '../services/geofenceService'
 import InfoTooltip from '../components/InfoTooltip'
 
-const LS_KEY = 'resqnet_inventory'
+const LS_KEY = 'safenet_inventory'
 
 const CATEGORIES = [
   { id: 'water',     label: 'Water',        emoji: '💧', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },

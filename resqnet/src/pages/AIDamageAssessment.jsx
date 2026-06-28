@@ -62,7 +62,7 @@ export default function AIDamageAssessment() {
       setResult(analysis)
     } catch (err) {
       clearInterval(ticker)
-      console.error('[RESQNET] Damage analysis error:', err)
+      console.error('[SAFENET] Damage analysis error:', err)
       setError(`Analysis failed: ${err.message}`)
       setStatusMsg('')
     }

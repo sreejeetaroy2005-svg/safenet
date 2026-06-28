@@ -1,6 +1,6 @@
 {
-  "appId": "com.resqnet.app",
-  "appName": "RESQNET",
+  "appId": "com.safenet.app",
+  "appName": "SafeNet",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

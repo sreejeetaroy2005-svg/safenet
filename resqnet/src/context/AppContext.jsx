@@ -31,8 +31,8 @@ const ls = {
 }
 
 export function AppProvider({ children }) {
-  const [user,       setUser]       = useState(() => ls.get('resqnet_user', null))
-  const [darkMode,   setDarkMode]   = useState(() => ls.get('resqnet_dark', false))
+  const [user,       setUser]       = useState(() => ls.get('safenet_user', null))
+  const [darkMode,   setDarkMode]   = useState(() => ls.get('safenet_dark', false))
   const [lang,       setLangState]  = useState(getLang)
   const [sosStage,   setSosStage]   = useState('idle')
   const [location,   setLocation]   = useState(null)
@@ -40,11 +40,11 @@ export function AppProvider({ children }) {
   // Tour is shown only for guest logins and new registrations
   const [showTour,   setShowTour]   = useState(false)
 
-  const [broadcasts, setBroadcasts] = useState(() => ls.get('resqnet_broadcasts', [
+  const [broadcasts, setBroadcasts] = useState(() => ls.get('safenet_broadcasts', [
     { id: 1, title: 'Flood Warning', message: 'Heavy rainfall expected in coastal areas. Stay indoors.', type: 'warning', time: Date.now() - 3600000 },
   ]))
-  const [reports,    setReports]    = useState(() => ls.get('resqnet_reports', []))
-  const [sosAlerts,  setSosAlerts]  = useState(() => ls.get('resqnet_sos', []))
+  const [reports,    setReports]    = useState(() => ls.get('safenet_reports', []))
+  const [sosAlerts,  setSosAlerts]  = useState(() => ls.get('safenet_sos', []))
 
   // Firestore unsubscribe refs
   const unsubRefs = useRef([])
@@ -52,14 +52,14 @@ export function AppProvider({ children }) {
   // ── Dark mode ──────────────────────────────────────────────────
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
-    ls.set('resqnet_dark', darkMode)
+    ls.set('safenet_dark', darkMode)
   }, [darkMode])
 
   // ── Persist to localStorage (always, as cache) ─────────────────
-  useEffect(() => { if (user) ls.set('resqnet_user', user); else ls.del('resqnet_user') }, [user])
-  useEffect(() => { ls.set('resqnet_reports',    reports)    }, [reports])
-  useEffect(() => { ls.set('resqnet_sos',        sosAlerts)  }, [sosAlerts])
-  useEffect(() => { ls.set('resqnet_broadcasts', broadcasts) }, [broadcasts])
+  useEffect(() => { if (user) ls.set('safenet_user', user); else ls.del('safenet_user') }, [user])
+  useEffect(() => { ls.set('safenet_reports',    reports)    }, [reports])
+  useEffect(() => { ls.set('safenet_sos',        sosAlerts)  }, [sosAlerts])
+  useEffect(() => { ls.set('safenet_broadcasts', broadcasts) }, [broadcasts])
 
   // ── Offline sync indicator ─────────────────────────────────────
   useEffect(() => {
@@ -126,8 +126,8 @@ export function AppProvider({ children }) {
   const register = useCallback(async ({ name, email, password }) => {
     if (!FIREBASE_ENABLED) {
       const u = { id: Date.now().toString(), name, email, password, role: 'user' }
-      const users = ls.get('resqnet_users', [])
-      ls.set('resqnet_users', [...users, u])
+      const users = ls.get('safenet_users', [])
+      ls.set('safenet_users', [...users, u])
       setUser(u)
       // Show tour for new registrations
       setShowTour(true)
@@ -164,7 +164,7 @@ export function AppProvider({ children }) {
     // Write to Firestore when enabled
     if (FIREBASE_ENABLED) {
       import('../services/sosFirestore').then(({ sendSosAlert }) => {
-        sendSosAlert(newAlert).catch(e => console.warn('[RESQNET] Firestore SOS write failed:', e.message))
+        sendSosAlert(newAlert).catch(e => console.warn('[SAFENET] Firestore SOS write failed:', e.message))
       })
     }
     return newAlert
@@ -186,7 +186,7 @@ export function AppProvider({ children }) {
           title:       newReport.title,
           description: newReport.description,
           location:    newReport.location,
-        }).catch(e => console.warn('[RESQNET] Firestore report write failed:', e.message))
+        }).catch(e => console.warn('[SAFENET] Firestore report write failed:', e.message))
       })
     }
     return newReport
@@ -207,7 +207,7 @@ export function AppProvider({ children }) {
     // Write to Firestore when enabled
     if (FIREBASE_ENABLED) {
       import('../services/broadcastsFirestore').then(({ sendBroadcast }) => {
-        sendBroadcast({ ...newBroadcast, adminId: 'admin' }).catch(e => console.warn('[RESQNET] Firestore broadcast write failed:', e.message))
+        sendBroadcast({ ...newBroadcast, adminId: 'admin' }).catch(e => console.warn('[SAFENET] Firestore broadcast write failed:', e.message))
       })
     }
     return newBroadcast

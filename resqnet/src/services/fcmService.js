@@ -48,7 +48,7 @@ export async function onForegroundMessage(onNotification) {
   if (!messaging) return () => {}
   return onMessage(messaging, (payload) => {
     onNotification({
-      title: payload.notification?.title || 'RESQNET Alert',
+      title: payload.notification?.title || 'SafeNet Alert',
       body:  payload.notification?.body  || '',
       data:  payload.data || {},
     })
@@ -57,7 +57,7 @@ export async function onForegroundMessage(onNotification) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SERVICE WORKER TEMPLATE
-   Create this file at: resqnet/public/firebase-messaging-sw.js
+   Create this file at: safenet/public/firebase-messaging-sw.js
    ─────────────────────────────────────────────────────────────────────────────
 
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');

@@ -20,7 +20,7 @@ const TOUR_STEPS = [
     tag: 'Welcome',
     title: 'Disaster response,\nreimagined.',
     description:
-      'RESQNET is your all-in-one emergency management platform — connecting citizens, rescue teams, and command centers in real time.',
+      'SafeNet is your all-in-one emergency management platform — connecting citizens, rescue teams, and command centers in real time.',
     visual: 'grid',
     visualItems: [
       { icon: '🆘', label: 'SOS Alerts', color: 'bg-red-500/10 text-red-500' },
@@ -145,7 +145,7 @@ const TOUR_STEPS = [
     tag: "You're all set",
     title: "Ready when\nyou need it.",
     description:
-      "RESQNET works offline, syncs when reconnected, and runs on any device. Your data stays local unless Firebase is enabled. Stay safe.",
+      "SafeNet works offline, syncs when reconnected, and runs on any device. Your data stays local unless Firebase is enabled. Stay safe.",
     visual: 'ready',
     features: [
       { icon: '🔒', text: 'Privacy-first — data stays on your device' },

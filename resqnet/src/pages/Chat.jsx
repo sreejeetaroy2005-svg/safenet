@@ -1,5 +1,5 @@
 /**
- * Chat.jsx — RESQNET AI Assistant powered by Google Gemini.
+ * Chat.jsx — SafeNet AI Assistant powered by Google Gemini.
  * Falls back to rule-based responses when API key is not set or call fails.
  */
 import { useState, useRef, useEffect } from 'react'
@@ -42,7 +42,7 @@ function getFallbackResponse(msg) {
     if (entry.keys.some(k => lower.includes(k))) return entry.text
   }
   if (/hi|hello|hey|namaste/.test(lower))
-    return "👋 Hi! I'm RESQNET Assistant. Ask me about first aid, evacuation, flood/fire/earthquake safety, shelter, or helplines."
+    return "👋 Hi! I'm SafeNet Assistant. Ask me about first aid, evacuation, flood/fire/earthquake safety, shelter, or helplines."
   return "I can help with:\n• First aid & CPR\n• Flood / Fire / Earthquake safety\n• Evacuation steps\n• Finding shelter\n• Emergency helplines (112, 108, 100)"
 }
 
@@ -57,8 +57,8 @@ export default function Chat() {
     id: 1,
     role: 'model',
     text: geminiAvailable()
-      ? "👋 Hello! I'm RESQNET Assistant powered by Gemini AI. Ask me anything about emergency response, first aid, evacuation, or disaster safety."
-      : "👋 Hello! I'm RESQNET Assistant. Ask me about first aid, evacuation, flood/fire/earthquake safety, or finding shelters.",
+      ? "👋 Hello! I'm SafeNet Assistant powered by Gemini AI. Ask me anything about emergency response, first aid, evacuation, or disaster safety."
+      : "👋 Hello! I'm SafeNet Assistant. Ask me about first aid, evacuation, flood/fire/earthquake safety, or finding shelters.",
   }])
   const [input,   setInput]   = useState('')
   const [typing,  setTyping]  = useState(false)
@@ -131,7 +131,7 @@ export default function Chat() {
             {panicMode ? <AlertCircle size={17} className="text-white" /> : <Bot size={17} className="text-white" />}
           </div>
           <div>
-            <p className={`font-bold text-sm ${panicMode ? 'text-white' : ''}`}>RESQNET Assistant</p>
+            <p className={`font-bold text-sm ${panicMode ? 'text-white' : ''}`}>SafeNet Assistant</p>
             <div className="flex items-center gap-1.5">
               {geminiAvailable()
                 ? <><span className="w-1.5 h-1.5 bg-green-400 rounded-full" /><span className="text-[10px] text-green-500 font-semibold">Gemini AI</span></>

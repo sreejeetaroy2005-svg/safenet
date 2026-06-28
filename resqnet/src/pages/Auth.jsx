@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../context/useApp'
 import { Shield, User, Eye, EyeOff, ArrowLeft, Zap } from 'lucide-react'
 
-const ADMIN_CREDS = { email: 'admin@resqnet.com', password: 'admin123' }
+const ADMIN_CREDS = { email: 'admin@safenet.com', password: 'admin123' }
 
 export default function Auth() {
   const { login, register, firebaseEnabled } = useApp()
@@ -14,7 +14,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false)
 
   const reset = (s) => { setScreen(s); setForm({ name: '', email: '', password: '' }); setError(''); setMode('login') }
-  const localUsers = () => JSON.parse(localStorage.getItem('resqnet_users') || '[]')
+  const localUsers = () => JSON.parse(localStorage.getItem('safenet_users') || '[]')
 
   const handleSubmit = async (e) => {
     e.preventDefault(); setError(''); setLoading(true)
@@ -71,7 +71,7 @@ export default function Auth() {
               <Zap size={10} className="text-white" fill="white" />
             </div>
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tight">RESQNET</h1>
+          <h1 className="text-4xl font-black text-white tracking-tight">SafeNet</h1>
           <p className="text-sm text-gray-400 mt-2 text-center">Disaster Response &amp; Emergency Network</p>
         </div>
 
@@ -130,7 +130,7 @@ export default function Auth() {
             {isAdmin ? <Shield size={30} className="text-white" /> : <User size={30} className="text-white" />}
           </div>
           <h2 className="text-2xl font-black text-white">{isAdmin ? 'Admin Login' : 'Welcome Back'}</h2>
-          <p className="text-xs text-gray-500 mt-1">{isAdmin ? 'RESQNET Control Center' : 'Sign in to your account'}</p>
+          <p className="text-xs text-gray-500 mt-1">{isAdmin ? 'SafeNet Control Center' : 'Sign in to your account'}</p>
         </div>
 
         {!isAdmin && (
@@ -184,7 +184,7 @@ export default function Auth() {
             </button>
           </>
         )}
-        {isAdmin && <p className="text-center text-xs text-gray-600 mt-5">admin@resqnet.com · admin123</p>}
+        {isAdmin && <p className="text-center text-xs text-gray-600 mt-5">admin@safenet.com · admin123</p>}
       </div>
     </div>
   )

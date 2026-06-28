@@ -76,7 +76,7 @@ const TRANSLATIONS = {
   },
 }
 
-const LANG_KEY = 'resqnet_lang'
+const LANG_KEY = 'safenet_lang'
 
 export function getLang() {
   return localStorage.getItem(LANG_KEY) || 'en'

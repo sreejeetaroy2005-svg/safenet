@@ -4,7 +4,7 @@
  * States: idle → locating → sending → sent | failed
  */
 
-const QUEUE_KEY = 'resqnet_sos_queue'
+const QUEUE_KEY = 'safenet_sos_queue'
 
 /** Add an SOS alert to the offline queue */
 export function queueSosAlert(alert) {

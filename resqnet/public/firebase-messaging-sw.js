@@ -18,7 +18,7 @@ const messaging = firebase.messaging();
 // Handle background push notifications
 messaging.onBackgroundMessage(payload => {
   const { title, body } = payload.notification || {}
-  self.registration.showNotification(title || 'RESQNET Alert', {
+  self.registration.showNotification(title || 'SafeNet Alert', {
     body:  body || '',
     icon:  '/icon-192.png',
     badge: '/icon-72.png',

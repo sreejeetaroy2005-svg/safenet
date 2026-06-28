@@ -14,7 +14,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 const GEMINI_KEY      = import.meta.env.VITE_GEMINI_API_KEY
 const OPENROUTER_KEY  = import.meta.env.VITE_OPENROUTER_API_KEY
 
-const SYSTEM_PROMPT = `You are RESQNET Assistant for disaster emergencies and preparedness.
+const SYSTEM_PROMPT = `You are SafeNet Assistant for disaster emergencies and preparedness.
 Be concise (under 100 words). Use bullet points.
 Emergency numbers: 112 (all), 108 (ambulance), 100 (police), 101 (fire).
 Help with: pre-disaster preparedness, building emergency kits, family plans, understanding risk zones, first aid, evacuation, flood/fire/earthquake safety, shelter finding.
@@ -78,7 +78,7 @@ async function askOpenRouter(history, userMessage) {
           'Content-Type':  'application/json',
           'Authorization': `Bearer ${OPENROUTER_KEY}`,
           'HTTP-Referer':  'http://localhost:5173',
-          'X-Title':       'RESQNET Emergency Assistant',
+          'X-Title':       'SafeNet Emergency Assistant',
         },
         body: JSON.stringify({ model, messages, max_tokens: 512, temperature: 0.4 }),
       })
@@ -86,18 +86,18 @@ async function askOpenRouter(history, userMessage) {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
         const errMsg = err?.error?.message || err?.message || `HTTP ${res.status}`
-        console.warn(`[RESQNET] OpenRouter model ${model} failed:`, res.status, errMsg)
+        console.warn(`[SAFENET] OpenRouter model ${model} failed:`, res.status, errMsg)
         continue  // try next model regardless of error type
       }
 
       const data = await res.json()
       const text = data.choices?.[0]?.message?.content?.trim()
       if (text) {
-        console.log('[RESQNET] OpenRouter responded via:', model)
+        console.log('[SAFENET] OpenRouter responded via:', model)
         return text
       }
     } catch (e) {
-      console.warn(`[RESQNET] OpenRouter model ${model} error:`, e.message)
+      console.warn(`[SAFENET] OpenRouter model ${model} error:`, e.message)
     }
   }
 
@@ -118,7 +118,7 @@ export async function sendToGemini(history, userMessage) {
       const is429 = err?.message?.includes('429') || err?.message?.toLowerCase().includes('quota')
       if (!is429) throw err  // non-quota error — propagate
       // quota hit — fall through to OpenRouter
-      console.warn('[RESQNET] Gemini quota hit, trying OpenRouter…')
+      console.warn('[SAFENET] Gemini quota hit, trying OpenRouter…')
     }
   }
 
@@ -128,10 +128,10 @@ export async function sendToGemini(history, userMessage) {
       const text = await askOpenRouter(history, userMessage)
       if (text) return text
     } catch (err) {
-      console.warn('[RESQNET] OpenRouter failed:', err.message)
+      console.warn('[SAFENET] OpenRouter failed:', err.message)
     }
   } else {
-    console.warn('[RESQNET] OpenRouter key not set — add VITE_OPENROUTER_API_KEY to .env.local')
+    console.warn('[SAFENET] OpenRouter key not set — add VITE_OPENROUTER_API_KEY to .env.local')
   }
 
   // Both unavailable

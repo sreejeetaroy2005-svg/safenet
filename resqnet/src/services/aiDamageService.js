@@ -15,7 +15,7 @@ const VISION_MODELS = [
   'openrouter/auto',   // auto-selects best available free vision model
 ]
 
-const ANALYSIS_PROMPT = `You are an AI disaster damage assessment system for RESQNET emergency app.
+const ANALYSIS_PROMPT = `You are an AI disaster damage assessment system for SafeNet emergency app.
 
 Analyze this image of a damaged area or building and respond ONLY in this exact JSON format (no markdown, no explanation):
 {
@@ -58,7 +58,7 @@ export async function analyzeImage(imageFile) {
       const result = await analyzeWithAI(imageFile)
       if (result) return result
     } catch (err) {
-      console.warn('[RESQNET] AI vision failed, using mock analysis:', err.message)
+      console.warn('[SAFENET] AI vision failed, using mock analysis:', err.message)
     }
   }
 
@@ -78,7 +78,7 @@ async function analyzeWithAI(imageFile) {
           'Content-Type':  'application/json',
           'Authorization': `Bearer ${OPENROUTER_KEY}`,
           'HTTP-Referer':  'http://localhost:5173',
-          'X-Title':       'RESQNET Damage Assessment',
+          'X-Title':       'SafeNet Damage Assessment',
         },
         body: JSON.stringify({
           model,
@@ -95,7 +95,7 @@ async function analyzeWithAI(imageFile) {
       })
 
       if (!res.ok) {
-        console.warn(`[RESQNET] Vision model ${model} failed: ${res.status}`)
+        console.warn(`[SAFENET] Vision model ${model} failed: ${res.status}`)
         continue
       }
 
@@ -103,7 +103,7 @@ async function analyzeWithAI(imageFile) {
       const raw = data.choices?.[0]?.message?.content?.trim()
       if (!raw) continue
 
-      console.log('[RESQNET] AI damage analysis raw response:', raw)
+      console.log('[SAFENET] AI damage analysis raw response:', raw)
 
       // Robust JSON extraction — handles markdown blocks, extra text, etc.
       let parsed = null
@@ -139,14 +139,14 @@ async function analyzeWithAI(imageFile) {
       }
 
       if (!parsed) {
-        console.warn('[RESQNET] Could not parse JSON from model response:', raw.slice(0, 200))
+        console.warn('[SAFENET] Could not parse JSON from model response:', raw.slice(0, 200))
         continue
       }
 
       return enrichResult(parsed, imageFile.name)
 
     } catch (err) {
-      console.warn(`[RESQNET] Vision model ${model} error:`, err.message)
+      console.warn(`[SAFENET] Vision model ${model} error:`, err.message)
       continue
     }
   }

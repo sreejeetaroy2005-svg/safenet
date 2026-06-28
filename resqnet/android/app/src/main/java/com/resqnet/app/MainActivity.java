@@ -1,4 +1,4 @@
-package com.resqnet.app;
+package com.safenet.app;
 
 import com.getcapacitor.BridgeActivity;
 

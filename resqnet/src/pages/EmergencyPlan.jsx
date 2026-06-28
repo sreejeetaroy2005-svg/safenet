@@ -16,7 +16,7 @@ import { useApp } from '../context/useApp'
 import { buildRiskZones, getActiveZones } from '../services/geofenceService'
 import InfoTooltip from '../components/InfoTooltip'
 
-const LS_KEY = 'resqnet_emergency_plan'
+const LS_KEY = 'safenet_emergency_plan'
 
 const DEFAULT_PLAN = {
   familyContacts:  [],
@@ -108,7 +108,7 @@ export default function EmergencyPlan() {
 
   const handleExport = () => {
     const lines = [
-      '=== RESQNET EMERGENCY PLAN ===',
+      '=== SAFENET EMERGENCY PLAN ===',
       `Generated: ${new Date().toLocaleString()}`,
       '',
       '--- FAMILY CONTACTS ---',
@@ -137,7 +137,7 @@ export default function EmergencyPlan() {
     const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = 'resqnet-emergency-plan.txt'
+    a.download = 'safenet-emergency-plan.txt'
     a.click()
   }
 

@@ -132,7 +132,7 @@ export default function SideNav({ collapsed, setCollapsed }) {
         </div>
         {!collapsed && (
           <div className="min-w-0">
-            <p className="text-sm font-black text-white tracking-tight leading-none">RESQNET</p>
+            <p className="text-sm font-black text-white tracking-tight leading-none">SafeNet</p>
             <p className="text-[9px] text-gray-500 font-medium tracking-widest">RESPONSE NETWORK</p>
           </div>
         )}

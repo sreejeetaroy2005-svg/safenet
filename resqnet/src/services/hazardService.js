@@ -3,7 +3,7 @@
  * Crowdsourced hazard markers — stored in localStorage, expire after TTL.
  */
 
-const KEY = 'resqnet_hazards'
+const KEY = 'safenet_hazards'
 const TTL = 6 * 60 * 60 * 1000 // 6 hours
 
 export const HAZARD_TYPES = [

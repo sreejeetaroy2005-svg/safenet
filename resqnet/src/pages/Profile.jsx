@@ -96,7 +96,7 @@ export default function Profile() {
           className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-red-200 dark:border-red-500/20 text-red-500 font-semibold text-sm">
           <LogOut size={16} /> Sign Out
         </button>
-        <p className="text-center text-xs text-gray-400 pb-2">RESQNET v3.0 · Disaster Response Ecosystem</p>
+        <p className="text-center text-xs text-gray-400 pb-2">SafeNet v3.0 · Disaster Response Ecosystem</p>
       </div>
     </div>
   )

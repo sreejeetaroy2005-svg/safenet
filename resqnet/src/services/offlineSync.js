@@ -7,8 +7,8 @@ import { sendSosAlert }   from './sosFirestore'
 import { submitReport }   from './reportsFirestore'
 import { pushNotification, PRIORITY } from './notificationService'
 
-const SOS_QUEUE_KEY    = 'resqnet_sos_queue'
-const REPORT_QUEUE_KEY = 'resqnet_report_queue'
+const SOS_QUEUE_KEY    = 'safenet_sos_queue'
+const REPORT_QUEUE_KEY = 'safenet_report_queue'
 
 // ── Queue helpers ────────────────────────────────────────────────
 function readQueue(key)        { try { return JSON.parse(localStorage.getItem(key) || '[]') } catch { return [] } }

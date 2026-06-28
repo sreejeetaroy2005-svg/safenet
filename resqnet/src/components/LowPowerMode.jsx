@@ -7,8 +7,8 @@
 import { useState, useEffect } from 'react'
 import { Battery, BatteryLow, X } from 'lucide-react'
 
-const KEY   = 'resqnet_low_power'
-const EVENT = 'resqnet-low-power-change'
+const KEY   = 'safenet_low_power'
+const EVENT = 'safenet-low-power-change'
 
 function readEnabled() { return localStorage.getItem(KEY) === 'true' }
 
