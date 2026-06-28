@@ -1,17 +1,16 @@
 // Firebase Cloud Messaging Service Worker
-// Replace config values with your own Firebase project credentials
+// Values below are injected at build time from .env.local — do NOT hardcode secrets here.
 
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-    apiKey: "AIzaSyAtG6FUa6_doX21LyiJ2xAwouIM__sllzE",
-  authDomain: "resqnet-d125d.firebaseapp.com",
-  projectId: "resqnet-d125d",
-  storageBucket: "resqnet-d125d.firebasestorage.app",
-  messagingSenderId: "41108096814",
-  appId: "1:41108096814:web:5c65a442c0405c2b685cbf",
-  measurementId: "G-CV9E7N2M98"
+  apiKey: "__VITE_FIREBASE_API_KEY__",
+  authDomain: "__VITE_FIREBASE_AUTH_DOMAIN__",
+  projectId: "__VITE_FIREBASE_PROJECT_ID__",
+  storageBucket: "__VITE_FIREBASE_STORAGE_BUCKET__",
+  messagingSenderId: "__VITE_FIREBASE_MESSAGING_SENDER_ID__",
+  appId: "__VITE_FIREBASE_APP_ID__",
 });
 
 const messaging = firebase.messaging();
