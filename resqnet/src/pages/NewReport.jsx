@@ -13,7 +13,7 @@ const TYPES = [
 
 export default function NewReport() {
   const navigate = useNavigate()
-  const { addReport, location } = useApp()
+  const { addReport, location, user } = useApp()
   const [form, setForm] = useState({ title: '', description: '', type: 'flood' })
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
@@ -57,7 +57,14 @@ export default function NewReport() {
     if (!form.title.trim()) return
     setSubmitting(true)
     await new Promise(r => setTimeout(r, 700))
-    addReport({ ...form, location: loc, hasPhoto: !!photo, hasAudio: !!audioUrl })
+    addReport({
+      ...form,
+      location:  loc,
+      hasPhoto:  !!photo,
+      hasAudio:  !!audioUrl,
+      user:      user?.name  || 'Anonymous',
+      userId:    user?.uid   || user?.id || 'guest',
+    })
     navigate('/reports')
   }
 

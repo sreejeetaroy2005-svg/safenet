@@ -80,7 +80,7 @@ export default function SOS() {
 
     const payload = {
       user:          user?.name || 'Anonymous',
-      userId:        user?.id   || 'guest',
+      userId:        user?.uid || user?.id || 'guest',
       location:      loc || { lat: 0, lng: 0 },
       emergencyType: selectedCategory.id,
       priority:      selectedCategory.priority,
